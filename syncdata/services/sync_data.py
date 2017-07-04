@@ -9,18 +9,23 @@ from ..models import SyncData
 
 
 class SyncDataService(object):
-    def __init__(self, session):
+    def __init__(self, session, gid=0):
         self.session = session
+        self.gid = gid
 
     def get(self, _hash):
         data = self.session.query(SyncData).filter(
             SyncData.hash == _hash,
+        ).filter(
+            SyncData.gid == self.gid,
         ).first()
         return data
 
     def get_all(self, to_dict=True):
         sync_datas = self.session.query(SyncData).filter(
             SyncData.deleted == False,
+        ).filter(
+            SyncData.gid == self.gid,
         ).all()
 
         if to_dict:
@@ -37,6 +42,7 @@ class SyncDataService(object):
 
     def add(self, data):
         sync_data = SyncData(
+            gid=self.gid,
             hash=data.get('hash'),
             data=json.dumps(data.get('data')),
         )

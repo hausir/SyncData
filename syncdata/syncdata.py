@@ -6,23 +6,23 @@ from __future__ import unicode_literals
 
 from .services import SyncDataService, ExecuteLogService
 
-LOCK_KEY = 'hausir:syncdata:lock'
-MAX_LOG_ID_KEY = 'hausir:syncdata:maxlogid'
-
 
 class SyncData(object):
-    def __init__(self, session, redis):
+    def __init__(self, session, redis, gid=0):
         self.session = session
         self.redis = redis
+        self.gid = gid
 
     def sync(self, log_id, datas):
         """sync datas"""
 
-        if self.redis.get(LOCK_KEY):
+        lock_key = 'hausir:syncdata:lock:{}'.format(self.gid)
+
+        if self.redis.get(lock_key):
             return False
 
         try:
-            self.redis.set(LOCK_KEY, True)
+            self.redis.set(lock_key, True)
             send_data = self.get_send_data(log_id)
             if datas:
                 self.execute_data(datas)
@@ -39,9 +39,9 @@ class SyncData(object):
             self.session.rollback()
             raise e
         finally:
-            self.redis.delete(LOCK_KEY)
+            self.redis.delete(lock_key)
 
-        self.redis.delete(LOCK_KEY)
+        self.redis.delete(lock_key)
         return {
             'log_id': max_log_id,
             'data': send_data,
@@ -67,6 +67,8 @@ class SyncData(object):
     def execute_data(self, datas):
         """执行客户端发来的数据"""
 
+        max_log_id_key = 'hausir:syncdata:maxlogid:{}'.format(self.gid)
+
         sync_data_srv = SyncDataService(self.session)
         execute_log_srv = ExecuteLogService(self.session)
         switcher = {
@@ -79,18 +81,20 @@ class SyncData(object):
             switcher.get(data.get('action'))(data.get('payload'))
 
         _id = execute_log_srv.add(datas)
-        self.redis.set(MAX_LOG_ID_KEY, _id)
+        self.redis.set(max_log_id_key, _id)
 
         self.session.commit()
 
     def get_max_log_id(self):
         """获取最新的log_id"""
 
-        max_log_id = self.redis.get(MAX_LOG_ID_KEY)
+        max_log_id_key = 'hausir:syncdata:maxlogid:{}'.format(self.gid)
+
+        max_log_id = self.redis.get(max_log_id_key)
 
         if not max_log_id:
             execute_log_srv = ExecuteLogService(self.session)
             max_log_id = execute_log_srv.get_max_id()
-            self.redis.set(MAX_LOG_ID_KEY, max_log_id)
+            self.redis.set(max_log_id_key, max_log_id)
 
         return int(max_log_id)

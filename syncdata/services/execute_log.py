@@ -10,12 +10,15 @@ from ..models import ExecuteLog
 
 
 class ExecuteLogService(object):
-    def __init__(self, session):
+    def __init__(self, session, gid=0):
         self.session = session
+        self.gid = gid
 
     def get_max_id(self):
         log = self.session.query(
             func.max(ExecuteLog.id).label('max_id')
+        ).filter(
+            ExecuteLog.gid == self.gid,
         ).first()
 
         return log.max_id if log.max_id else 0
@@ -23,6 +26,8 @@ class ExecuteLogService(object):
     def get_unexecute_logs(self, log_id, to_dict=True):
         logs = self.session.query(ExecuteLog).filter(
             ExecuteLog.id > log_id,
+        ).filter(
+            ExecuteLog.gid == self.gid,
         ).all()
 
         if to_dict:
@@ -38,6 +43,7 @@ class ExecuteLogService(object):
 
     def add(self, log):
         execute_log = ExecuteLog(
+            gid=self.gid,
             log=json.dumps(log),
         )
         self.session.add(execute_log)

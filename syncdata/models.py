@@ -29,10 +29,12 @@ Base = declarative_base(cls=_Base)
 
 
 class ExecuteLog(Base):
+    gid = Column(Integer, server_default='0', index=True, nullable=False)
     log = Column(Text, server_default='', nullable=False)
 
 
 class SyncData(Base):
+    gid = Column(Integer, server_default='0', index=True, nullable=False)
     hash = Column(String(255), unique=True, server_default='', nullable=False)
     data = Column(Text, server_default='', nullable=False)
     deleted = Column(Boolean, server_default='FALSE', nullable=False)
