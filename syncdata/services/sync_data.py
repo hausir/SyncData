@@ -48,8 +48,8 @@ class SyncDataService(object):
         )
         self.session.add(sync_data)
 
-    def delete(self, _hash):
-        data = self.get(_hash)
+    def delete(self, data):
+        data = self.get(data.get('hash'))
         data.deleted = True
         self.session.flush()
 
