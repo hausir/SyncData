@@ -47,6 +47,7 @@ class SyncDataService(object):
             data=json.dumps(data.get('data')),
         )
         self.session.add(sync_data)
+        self.session.flush()
 
     def delete(self, data):
         data = self.get(data.get('hash'))
