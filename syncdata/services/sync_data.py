@@ -55,5 +55,5 @@ class SyncDataService(object):
 
     def update(self, kwargs):
         data = self.get(kwargs.get('hash'))
-        data.data = kwargs.get('data')
+        data.data = json.dumps(kwargs.get('data'))
         self.session.flush()

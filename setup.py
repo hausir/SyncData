@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from setuptools import setup, find_packages
 
-VERSION = '0.1.11'
+VERSION = '0.1.12'
 
 setup(
     name='SyncData',
