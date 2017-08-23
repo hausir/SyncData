@@ -29,7 +29,7 @@ class SyncData(object):
             max_log_id = self.get_max_log_id()
 
             if not send_data:
-                sync_data_srv = SyncDataService(self.session)
+                sync_data_srv = SyncDataService(self.session, self.gid)
                 sync_datas = sync_data_srv.get_all()
                 send_data = {
                     'type': 'ALL',
@@ -56,7 +56,7 @@ class SyncData(object):
         if res > 100:
             return False
 
-        execute_log_srv = ExecuteLogService(self.session)
+        execute_log_srv = ExecuteLogService(self.session, self.gid)
         logs = execute_log_srv.get_unexecute_logs(log_id)
 
         return {
@@ -69,8 +69,8 @@ class SyncData(object):
 
         max_log_id_key = 'hausir:syncdata:maxlogid:{}'.format(self.gid)
 
-        sync_data_srv = SyncDataService(self.session)
-        execute_log_srv = ExecuteLogService(self.session)
+        sync_data_srv = SyncDataService(self.session, self.gid)
+        execute_log_srv = ExecuteLogService(self.session, self.gid)
         switcher = {
             'INSERT': sync_data_srv.add,
             'DELETE': sync_data_srv.delete,
@@ -93,7 +93,7 @@ class SyncData(object):
         max_log_id = self.redis.get(max_log_id_key)
 
         if not max_log_id:
-            execute_log_srv = ExecuteLogService(self.session)
+            execute_log_srv = ExecuteLogService(self.session, self.gid)
             max_log_id = execute_log_srv.get_max_id()
             self.redis.set(max_log_id_key, max_log_id)
 
