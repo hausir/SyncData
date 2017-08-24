@@ -43,18 +43,18 @@ class SyncDataService(object):
     def add(self, data):
         sync_data = SyncData(
             gid=self.gid,
-            hash=data.get('hash'),
+            hash=data.get('hash') or data.get('_hash'),
             data=json.dumps(data.get('data')),
         )
         self.session.add(sync_data)
         self.session.flush()
 
     def delete(self, data):
-        data = self.get(data.get('hash'))
+        data = self.get(data.get('hash') or data.get('_hash'))
         data.deleted = True
         self.session.flush()
 
     def update(self, kwargs):
-        data = self.get(kwargs.get('hash'))
+        data = self.get(kwargs.get('hash') or kwargs.get('_hash'))
         data.data = json.dumps(kwargs.get('data'))
         self.session.flush()
