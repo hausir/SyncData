@@ -77,10 +77,12 @@ class SyncData(object):
             'UPDATE': sync_data_srv.update,
         }
 
+        real_datas = []
         for data in datas:
-            switcher.get(data.get('action'))(data.get('payload'))
+            result = switcher.get(data.get('action'))(data.get('payload'))
+            result and real_datas.append(data)
 
-        _id = execute_log_srv.add(datas)
+        _id = execute_log_srv.add(real_datas)
         self.redis.set(max_log_id_key, _id)
 
         self.session.commit()
